@@ -1,10 +1,10 @@
 con <- dbConnect(
   RPostgres::Postgres(),
-  dbname = "tsdb",
+  dbname = "",
   host = "localhost",
   port = 5432,
-  user = "jack",
-  password = "StCroixRiver"
+  user = "",
+  password = ""
 )
 
 
@@ -44,96 +44,7 @@ dbExecute(con, "SET search_path TO cfb2026, public;")
    # survives dplyr verbs like transmute()/mutate(). RPostgres's dbWriteTable
    # does S4 dispatch on that class and finds no method for it (only plain
    # data.frame) -- strip back to a bare data.frame before writing.
-#  df <- as.data.frame(df)
-   # SYSTEMIC FIX for a whole class of errors we kept hitting one field at a
-   # time (start_date, play_id, game_id, offense_team_id, defense_team_id...):
-   # CFBD's API returns big IDs and some other fields as JSON strings, and
-   # cfbfastR passes them through as R character vectors even when the target
-   # Postgres column is numeric/timestamp/boolean. dbWriteTable() infers the
-   # temp table's column type from the R vector, so a character column makes a
-   # TEXT temp column -- and text isn't an assignment-safe cast to any of
-   # those types in Postgres, so INSERT...SELECT fails. Fix it here, once, by
-   # checking the REAL target column type for every column in `df` and
-   # coercing character columns to match BEFORE they ever reach dbWriteTable,
-   # instead of patching each field individually as it's discovered.
-#  col_types <- dbGetQuery(con, glue(
-#    "SELECT a.attname AS column_name, format_type(a.atttypid, a.atttypmod) AS data_type
-#     FROM pg_attribute a
-#     WHERE a.attrelid = '{table}'::regclass AND a.attnum > 0 AND NOT a.attisdropped
-#       AND a.attname IN ({paste(sprintf(\"'%s'\", colnames(df)), collapse = ', ')});"
-#  ))
-#  for (i in seq_len(nrow(col_types))) {
-#    cn <- col_types$column_name[i]; dt <- col_types$data_type[i]
-#    v <- df[[cn]]
-#    if (!is.character(v)) next  # only fixing character-vector mismatches
-#    if (grepl("^(integer|bigint|smallint|numeric|double precision|real)", dt)) {
-#      df[[cn]] <- suppressWarnings(as.numeric(v))
-#    } else if (grepl("^(timestamp|date)", dt)) {
-#      df[[cn]] <- suppressWarnings(as.POSIXct(v, format = "%Y-%m-%dT%H:%M:%OSZ", tz = "UTC"))
-#    } else if (dt == "boolean") {
-#      df[[cn]] <- as.logical(v)
-#    }
-#  }
-#  dbWriteTable(con, DBI::SQL(paste0("tmp_", table)), df, temporary = TRUE, overwrite = TRUE)
-#  cols <- colnames(df)
-#  set_clause <- paste(sprintf("%s = EXCLUDED.%s", cols, cols), collapse = ", ")
-#  key_clause <- paste(keys, collapse = ", ")
-#  sql <- glue(
-#    "INSERT INTO {table} ({paste(cols, collapse=', ')})
-#     SELECT {paste(cols, collapse=', ')} FROM tmp_{table}
-#     ON CONFLICT ({key_clause}) DO UPDATE SET {set_clause};"
-#  )
-#  dbExecute(con, sql)
-#  dbExecute(con, glue("DROP TABLE tmp_{table};"))
-# }
 
-# update your upsert() definition to automatically execute distinct() on key columns prior to table creation:
-######################################################################################
-# upsert <- function(df, table, keys) {
-#   if (nrow(df) == 0) return(invisible(NULL))
-#   
-#   df <- as.data.frame(df)
-#   
-#   # Guarantee uniqueness on specified keys before staging to PostgreSQL
-#   df <- df[!duplicated(df[keys]), ]
-#   
-#   col_types <- dbGetQuery(con, glue(
-#     "SELECT a.attname AS column_name, format_type(a.atttypid, a.atttypmod) AS data_type
-#      FROM pg_attribute a
-#      WHERE a.attrelid = '{table}'::regclass AND a.attnum > 0 AND NOT a.attisdropped
-#        AND a.attname IN ({paste(sprintf(\"'%s'\", colnames(df)), collapse = ', ')});"
-#   ))
-#   
-#   for (i in seq_len(nrow(col_types))) {
-#     cn <- col_types$column_name[i]; dt <- col_types$data_type[i]
-#     v <- df[[cn]]
-#     if (!is.character(v)) next
-#     if (grepl("^(integer|bigint|smallint|numeric|double precision|real)", dt)) {
-#       df[[cn]] <- suppressWarnings(as.numeric(v))
-#     } else if (grepl("^(timestamp|date)", dt)) {
-#       df[[cn]] <- suppressWarnings(as.POSIXct(v, format = "%Y-%m-%dT%H:%M:%OSZ", tz = "UTC"))
-#     } else if (dt == "boolean") {
-#       df[[cn]] <- as.logical(v)
-#     }
-#   }
-  
-#   dbWriteTable(con, DBI::SQL(paste0("tmp_", table)), df, temporary = TRUE, overwrite = TRUE)
-  
-#   cols <- colnames(df)
-#   set_clause <- paste(sprintf("%s = EXCLUDED.%s", cols, cols), collapse = ", ")
-#   key_clause <- paste(keys, collapse = ", ")
-  
-#   sql <- glue(
-#     "INSERT INTO {table} ({paste(cols, collapse=', ')})
-#      SELECT {paste(cols, collapse=', ')} FROM tmp_{table}
-#      ON CONFLICT ({key_clause}) DO UPDATE SET {set_clause};"
-#   )
-  
-#   dbExecute(con, sql)
-#   dbExecute(con, glue("DROP TABLE tmp_{table};"))
-# }
-################################################################################
-###
 
 upsert <- function(df, table, keys) {
   if (nrow(df) == 0) return(invisible(NULL))
@@ -352,7 +263,7 @@ upsert(games, "games", "game_id")
 # both computed here, not a box-score total divided by a play count nobody
 # re-derives.
 
-Sys.setenv(CFBD_API_KEY = "hyyrAkmzIZeY0usAzdOhFC1+SPWcImMVocJT2OjrVw56ULvOEedy0fXjplthXgJo")
+Sys.setenv(CFBD_API_KEY = "")
 
 
 pbp_raw <- cfbd_pbp_data(year = SEASON, season_type = "both", epa_wpa = TRUE)
@@ -580,62 +491,7 @@ parse_mmss <- function(x) {
     if (length(p) == 2) as.numeric(p[1]) * 60 + as.numeric(p[2]) else NA_real_
   }, numeric(1))
 }
-######################################################################################
-# box_extra <- tryCatch({
-#   if (nrow(box_raw) == 0 || !has_col(box_raw, "school")) stop("no box-score rows available")
-# 
-#   # `teams` already holds both the FBS pull and the FCS stub backfill from
-#   # earlier -- resolve team_id/opponent_id by name against it rather than
-#   # expecting an ID column this endpoint doesn't provide.
-#   team_lookup <- dbGetQuery(con, "SELECT team_id, school FROM teams;")
-#   team_lookup_opp <- team_lookup %>% rename(opponent_id = team_id, opponent = school)
-# 
-#   third_down  <- parse_frac(get_col(box_raw, "third_down_eff"))
-#   fourth_down <- parse_frac(get_col(box_raw, "fourth_down_eff"))
-#   poss_sec    <- parse_mmss(get_col(box_raw, "possession_time"))
-# 
-#   matched <- box_raw %>%
-#     mutate(
-#       .third_made = third_down$made, .third_att = third_down$att,
-#       .fourth_made = fourth_down$made, .fourth_att = fourth_down$att,
-#       .poss_sec = poss_sec,
-#       .turnovers = suppressWarnings(as.numeric(turnovers)),
-#       .fumbles_lost = suppressWarnings(as.numeric(fumbles_lost)),
-#       .passes_intercepted = suppressWarnings(as.numeric(passes_intercepted))
-#     ) %>%
-#     left_join(team_lookup, by = "school") %>%
-#     left_join(team_lookup_opp, by = "opponent") %>%
-#     transmute(
-#       game_id = as.integer(game_id), team_id, opponent_id,
-#       is_home = (home_away == "home"),
-#       points,
-#       turnovers = .turnovers,
-#       fumbles_lost = .fumbles_lost,
-#       interceptions_thrown = .passes_intercepted,
-#       third_down_pct = .third_made / pmax(.third_att, 1),
-#       fourth_down_pct = .fourth_made / pmax(.fourth_att, 1),
-#       time_of_possession_sec = .poss_sec,
-#       havoc_rate = NA_real_
-#     )
-# 
-#   n_unmatched <- sum(is.na(matched$team_id))
-#   if (n_unmatched > 0) {
-#     message(sprintf(
-#       "%d of %d box-score row(s) didn't name-match a team in `teams` -- their box-score fields will be NA (atomic-grain fields from `plays` are unaffected).",
-#       n_unmatched, nrow(matched)
-#     ))
-#   }
-#   matched
-# }, error = function(e) {
-#   message(sprintf(
-#    "Box-score join skipped (%s) -- game_team_stats will carry atomic-grain (plays-derived) fields only for now; turnovers/3rd-4th down %%/time of possession will be NA until this resolves.",
-#     conditionMessage(e)
-#   ))
-#   data.frame(game_id = numeric(0), team_id = integer(0), opponent_id = integer(0), is_home = logical(0),
-#              points = numeric(0), turnovers = numeric(0), fumbles_lost = numeric(0),
-#              interceptions_thrown = numeric(0), third_down_pct = numeric(0),
-#              fourth_down_pct = numeric(0), time_of_possession_sec = numeric(0), havoc_rate = numeric(0))
-# })
+
 ######################################################################################
 box_extra <- tryCatch({
   if (nrow(box_raw) == 0 || !has_col(box_raw, "school")) stop("no box-score rows available")
@@ -721,9 +577,9 @@ upsert(game_team_stats, "game_team_stats", c("game_id", "team_id"))
 # ---- 4. Weekly ratings: Elo, FPI, SP+ -------------------------------------
 # None of these three endpoints return team_id -- only a `team` name string,
 # same shape as the box-score endpoint above (confirmed via
-# dplyr::glimpse()). Their real offense/defense field names also differ from
-# the initial guess: SP+ uses offense_rating/defense_rating (not
-# offense/defense); FPI uses efficiencies_offense/efficiencies_defense, which
+# dplyr::glimpse()). Their real offense/defense field names also differ.
+#  SP+ uses offense_rating/defense_rating (not # offense/defense); 
+#  FPI uses efficiencies_offense/efficiencies_defense, which
 # come back NA this early in the season -- that's genuinely sparse data, not
 # a bug, and will populate as the season progresses. Elo has no
 # offense/defense split at all. Resolve team_id by name against `teams`,
@@ -793,33 +649,6 @@ upsert(ratings_weekly, "team_week_ratings", "season, week, team_id")
 
 ################################################################################
 # ---- 5. Betting lines ------------------------------------------------------
-# lines_raw <- cfbd_betting_lines(year = SEASON)
-# lines <- lines_raw %>%
-#   transmute(
-#     game_id, provider = provider,
-#     spread = as.numeric(spread), over_under = as.numeric(over_under),
-#     home_moneyline = home_moneyline, away_moneyline = away_moneyline
-#   ) %>%
-#   filter(!is.na(spread))
-
-# Same scope mismatch as cfbd_pbp_data() earlier -- cfbd_betting_lines() can
-# return odds for a game_id that isn't in `games` (our authoritative FBS
-# schedule from cfbd_game_info()), and betting_lines has a FK to games.
-# Filter to games we actually have rather than fabricate one -- odds for a
-# game outside our schedule are out of scope for this project anyway.
-
-# n_before <- nrow(lines)
-# lines <- lines %>% filter(game_id %in% games$game_id)
-# n_dropped <- n_before - nrow(lines)
-# if (n_dropped > 0) {
-#   message(sprintf(
-#     "Dropped %d betting line(s) for game(s) not in the FBS schedule pull (out of scope).",
-#     n_dropped
-#   ))
-# }
-# upsert(lines, "betting_lines", "game_id, provider, pulled_at")
-################################################################################
-# ---- 5. Betting lines ------------------------------------------------------
 dbExecute(con, "SET search_path TO cfb2026, public;")
 lines_raw <- cfbd_betting_lines(year = SEASON)
 
@@ -859,12 +688,13 @@ upsert(lines, "betting_lines", c("game_id", "provider", "pulled_at"))
 ################################################################################
 
 
-dbGetQuery(con, "
+bline <- dbGetQuery(con, "
   SELECT table_schema, table_name 
   FROM information_schema.tables 
   WHERE table_name = 'betting_lines';
 ")
-
+                
+bline
 
 dbDisconnect(con)
 message(glue("Ingest complete for season {SEASON}, through week {current_week}."))
