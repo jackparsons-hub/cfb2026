@@ -1,13 +1,13 @@
 con <- dbConnect(
   RPostgres::Postgres(),
-  dbname = "tsdb",
+  dbname = "",
   host = "localhost",
   port = 5432,
-  user = "jack",
-  password = "StCroixRiver"
+  user = "",
+  password = ""
 )
 
-Sys.setenv(CFBD_API_KEY = "hyyrAkmzIZeY0usAzdOhFC1+SPWcImMVocJT2OjrVw56ULvOEedy0fXjplthXgJo")
+Sys.setenv(CFBD_API_KEY = "")
 
 
 
@@ -28,19 +28,14 @@ library(tidyverse)
 # PLOT YPP DATA
 #
 ################################################################################
-# pbp2025 <- cfbfastR::load_cfb_pbp(2025)pbp2025 <- cfbfastR::load_cfb_pbp(2025)
-#write.csv(pbp2025,"pbp2025_YE2025.csv")
-library(readr)
-#   getwd()
-#   pbp2025wk6_7 <- read_csv("/home/jack/Documents/cfb2025/pbp2025_YE2025.csv")
-# str(pbp2025wk6_7)
-# head(pbp2025wk6_7)
-#read.csv(pbp2025wk6_7,"pbp2025_YE2025.csv")  
 
-Sys.setenv(CFBD_API_KEY = "hyyrAkmzIZeY0usAzdOhFC1+SPWcImMVocJT2OjrVw56ULvOEedy0fXjplthXgJo")
+library(readr)
+
+
+Sys.setenv(CFBD_API_KEY = "")
 
 getwd()
-setwd("/home/jack/Documents/cfb2026/file_18/workflow")
+setwd("")
 
 SEASON <- 2026
 
@@ -75,8 +70,6 @@ getwd()
 write.csv(team_plot_off_data_p5,"team_plot_p4_off_ypp_wk3.csv")
 
 head(team_plot_off_data_p5)
-# getwd()
-# setwd('C:/Users/Jack/Documents/cfb2025/output')
 
 
 ggplot(team_plot_off_data_p5, aes(x = pass_ypp, y = rush_ypp)) +
@@ -95,15 +88,7 @@ names(team_plot_off_data_p5)
 pbp_raw %>% select(contains("team"))%>%
   distinct("team")
 
-# pbp_raw %>%
-#  select(contains("team")) %>%
-#  pivot_longer(everything(), values_to = "team") %>%
-#  distinct(team) %>%
-#  drop_na()
-# Error in `pivot_longer()`:
-# ! Can't combine `pos_team` <character> and `pos_team_score` <integer>.
-# Run `rlang::last_trace()` to see where the error occurred.
-# Called from: signal_abort(cnd, .file)
+
 pbp_raw %>% select(pos_team, def_pos_team) %>% distinct()
 pbp_raw %>% select(pos_team, def_pos_team) %>% distinct()
 tibble(
@@ -148,9 +133,6 @@ dbWriteTable(con, Id(schema = "cfb2026", table = "team_plot_off_data_p5"),
 
 dbWriteTable(con, Id(schema = "cfb2026", table = "team_plot_def_data_p5"),
              team_plot_def_data_p5, overwrite = TRUE)
-
-# dbWriteTable(con, Id(schema = "cfb2026", table = "pbp_raw_1"),
-#              value=pbp_raw, overwrite = TRUE)
 
 # Convert to standard data.frame to strip custom package classes
 pbp_raw_df <- as.data.frame(pbp_raw)
