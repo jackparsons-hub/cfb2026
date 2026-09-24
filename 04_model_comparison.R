@@ -3,11 +3,11 @@
 
 con <- dbConnect(
   RPostgres::Postgres(),
-  dbname = "tsdb",
+  dbname = "",
   host = "localhost",
   port = 5432,
-  user = "jack",
-  password = "StCroixRiver"
+  user = "",
+  password = ""
 )
 
 
