@@ -1,6 +1,6 @@
 
-Sys.setenv(CFBD_API_KEY = "hyyrAkmzIZeY0usAzdOhFC1+SPWcImMVocJT2OjrVw56ULvOEedy0fXjplthXgJo")
-Sys.setenv(psswrd = "StCroixRiver")
+Sys.setenv(CFBD_API_KEY = "")
+Sys.setenv(psswrd = "")
 
 
 con <- dbConnect(
