@@ -1,4 +1,4 @@
-psswrd <- "StCroixRiver"
+psswrd <- ""
 
 # ==============================================================================
 # 03_feature_engineering.R (Updated)
@@ -18,8 +18,8 @@ LIKE_TO_LIKE_ONLY <- FALSE
 con <- dbConnect(
   RPostgres::Postgres(),
   host = Sys.getenv("PGHOST", "localhost"),
-  dbname = Sys.getenv("PGDATABASE", "tsdb"),
-  user = Sys.getenv("PGUSER", "jack"),
+  dbname = Sys.getenv("PGDATABASE", ""),
+  user = Sys.getenv("PGUSER", ""),
   password = Sys.getenv("PGPASSWORD", psswrd )
 )
 
