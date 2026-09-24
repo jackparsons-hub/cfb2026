@@ -4,7 +4,7 @@ library(dplyr)
 library(purrr)
 
 # Set working directory
-setwd("/home/jack/Documents/cfb2026/file_18/workflow")
+setwd("")
 
 # ESPN's public College Football scoreboard API endpoint
 url <- "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard"
