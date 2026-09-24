@@ -2,15 +2,6 @@
 
 # con <- dbConnect(Postgres(), ...)   # reuse your existing connection params
 
-con <- dbConnect(
-  RPostgres::Postgres(),
-  dbname = "tsdb",
-  host = "localhost",
-  port = 5432,
-  user = "jack",
-  password = "StCroixRiver"
-)
-
 library(DBI)
 library(RPostgres)
 library(dplyr)
