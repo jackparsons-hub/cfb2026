@@ -1,13 +1,13 @@
-Sys.setenv(CFBD_API_KEY = "hyyrAkmzIZeY0usAzdOhFC1+SPWcImMVocJT2OjrVw56ULvOEedy0fXjplthXgJo")
-Sys.setenv(psswrd = "StCroixRiver")
+Sys.setenv(CFBD_API_KEY = "")
+Sys.setenv(psswrd = "")
 
 
 con <- dbConnect(
   RPostgres::Postgres(),
-  dbname = "tsdb",
+  dbname = "",
   host = "localhost",
   port = 5432,
-  user = "jack",
+  user = "",
   password = psswrd
 )
 
